@@ -85,6 +85,7 @@ func NewAPB(v TValues) *APB {
 type TValues struct {
 	Name        string
 	Description string
+	Icon        string
 	TarfileName string
 	Values      string // the entire contents of the chart's values.yaml file
 }
@@ -92,6 +93,7 @@ type TValues struct {
 // Chart hold data that is parsed from a helm chart's Chart.yaml file.
 type Chart struct {
 	Description string
+	Icon        string
 	Name        string
 }
 
@@ -216,6 +218,7 @@ func getTValues(filename string) (TValues, error) {
 		return TValues{
 			Name:        chart.Name,
 			Description: chart.Description,
+			Icon:        chart.Icon,
 			TarfileName: filename,
 			Values:      values,
 		}, nil
