@@ -11,6 +11,7 @@ import (
 	"path"
 	"text/template"
 
+	"github.com/automationbroker/bundle-lib/apb"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -28,65 +29,36 @@ ENTRYPOINT ["entrypoint.sh"]
 const apbYml string = "apb.yml"
 const dockerfile string = "Dockerfile"
 
-// APB represents an apb.yml file
-type APB struct {
-	Version     string            `yaml:"version"`
-	Name        string            `yaml:"name"`
-	Description string            `yaml:"description"`
-	Bindable    bool              `yaml:"bindable"`
-	Async       string            `yaml:"async"`
-	Metadata    map[string]string `yaml:"metadata"`
-	Plans       []Plan            `yaml:"plans"`
-}
-
-// Plan represents a Plan within an APB
-type Plan struct {
-	Name        string                 `yaml:"name"`
-	Description string                 `yaml:"description"`
-	Free        bool                   `yaml:"free"`
-	Metadata    map[string]interface{} `yaml:"metadata"`
-	Parameters  []Parameter            `yaml:"parameters"`
-}
-
-// Parameter represents a Parameter within a Plan
-type Parameter struct {
-	Name        string `yaml:"name"`
-	Title       string `yaml:"title"`
-	Type        string `yaml:"type"`
-	DisplayType string `yaml:"display_type"`
-	Default     string `yaml:"default"`
-}
-
-// NewAPB returns a pointer to a new APB that has been populated with the
+// NewSpec returns a pointer to a new APB that has been populated with the
 // passed-in data.
-func NewAPB(v TarValues) *APB {
-	parameter := Parameter{
+func NewSpec(v TarValues) *apb.Spec {
+	parameter := apb.ParameterDescriptor{
 		Name:        "values",
 		Title:       "Values",
 		Type:        "string",
 		DisplayType: "textarea",
 		Default:     v.Values,
 	}
-	plan := Plan{
+	plan := apb.Plan{
 		Name:        "default",
 		Description: fmt.Sprintf("Deploys helm chart %s", v.Name),
 		Free:        true,
 		Metadata:    make(map[string]interface{}),
-		Parameters:  []Parameter{parameter},
+		Parameters:  []apb.ParameterDescriptor{parameter},
 	}
-	apb := APB{
+	spec := apb.Spec{
 		Version:     "1.0",
 		Name:        fmt.Sprintf("%s-apb", v.Name),
 		Description: v.Description,
 		Bindable:    false,
 		Async:       "optional",
-		Metadata: map[string]string{
+		Metadata: map[string]interface{}{
 			"displayName": fmt.Sprintf("%s (helm bundle)", v.Name),
 			"imageUrl":    v.Icon,
 		},
-		Plans: []Plan{plan},
+		Plans: []apb.Plan{plan},
 	}
-	return &apb
+	return &spec
 }
 
 // TarValues holds data that will be used to create the Dockerfile and apb.yml
@@ -189,7 +161,7 @@ func fileExists() (bool, error) {
 // writeApbYaml creates a new file named "apb.yml" in the current working
 // directory that can be used to build a service bundle.
 func writeApbYaml(v TarValues) error {
-	apb := NewAPB(v)
+	apb := NewSpec(v)
 	data, err := yaml.Marshal(apb)
 	if err != nil {
 		return err
