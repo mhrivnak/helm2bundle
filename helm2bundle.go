@@ -21,7 +21,7 @@ LABEL "com.redhat.apb.spec"=\
 
 COPY {{.TarfileName}} /opt/chart.tgz
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["hbb-entrypoint.sh"]
 `
 
 const apbYml string = "apb.yml"
